@@ -1,0 +1,179 @@
+import { BaseClient, ClientUser, Bot, ClientHandler, Channel, User, UserMessage } from "@akaiv/core";
+import { Client as InternalClient } from "irc";
+import { IRCChannel, IRCUser, IRCMessage } from "./irc-wrapped";
+import NodeIRC = require("irc");
+import { AttachmentTemplateHandler } from "./irc-template-handler";
+
+/*
+ * Created on Wed Oct 09 2019
+ *
+ * Copyright (c) storycraft. Licensed under the MIT Licence.
+ */
+
+export class IRCClient extends BaseClient {
+    
+    private url: string;
+
+    private internal: InternalClient;
+
+    private connected: boolean;
+
+    private channelPrefix: string;
+
+    private channelMap: Map<string, IRCChannel>;
+    private userMap: Map<string, IRCUser>;
+
+    constructor(url: string, { channelList, channelPrefix, username, secured, password } = {
+        channelList: [],
+        channelPrefix: '&#',
+        username: '',
+        secured: false,
+        password: ''
+    }) {
+        super();
+
+        this.channelMap = new Map();
+        this.userMap = new Map();
+
+        this.url = url;
+
+        this.channelPrefix = channelPrefix;
+
+        this.internal = new InternalClient(this.url, username, {
+            autoConnect: false,
+            channels: channelList,
+            channelPrefixes: this.channelPrefix,
+            secure: secured,
+            password: password
+        });
+
+        this.connected = false;
+
+        this.RichHandlerList.push(new AttachmentTemplateHandler(this));
+    }
+
+    get ClientId(): string {
+        return 'irc';
+    }
+
+    get ClientName(): string {
+        return 'IRC';
+    }
+
+    get Internal() {
+        return this.internal;
+    }
+
+    get IrcURL() {
+        return this.url;
+    }
+
+    get UserName() {
+        return this.Internal.nick;
+    }
+
+    get Connected() {
+        return this.connected;
+    }
+
+    get ChannelList(): Channel[] {
+        throw new Error("Method not implemented.");
+    }
+
+    nameToID(name: string) {
+        return name.toLowerCase();
+    }
+
+    protected createClientUser(): ClientUser {
+        return new IRCClientUser(this, this.nameToID(this.UserName));
+    }
+
+    protected createHandler(bot: Bot): ClientHandler<BaseClient> {
+        return new IRCClientHandler(this, bot);
+    }
+
+    protected startClient(): Promise<void> {
+        return new Promise<void> ((resolve, reject) => {
+            this.Internal.connect(32, (e: NodeIRC.IMessage) => {
+                resolve();
+            });
+        });
+    }
+
+    protected stopClient(): Promise<void> {
+        return new Promise<void> ((resolve, reject) => {
+            this.Internal.disconnect('', resolve);
+        });
+    }
+
+    getWrappedUser(name: string) {
+        let wrapped = this.userMap.get(name);
+
+        if (wrapped) {
+            return wrapped;
+        }
+
+        wrapped = new IRCUser(this, name);
+
+        this.userMap.set(name, wrapped);
+
+        return wrapped;
+    }
+
+    getWrappedChannel(name: string) {
+        let wrapped = this.channelMap.get(name);
+
+        if (wrapped) {
+            return wrapped;
+        }
+
+        wrapped = new IRCChannel(this, name);
+
+        this.channelMap.set(name, wrapped);
+
+        return wrapped;
+    }
+
+    isValidChannel(channel: Channel): boolean {
+        return channel && this.channelMap.get(channel.Name) === channel;
+    }
+
+    isValidUser(user: User): boolean {
+        return user && this.userMap.get(user.Name) === user;
+    }
+
+    getPMChannel(user: User) {
+        return this.getWrappedChannel(user.Name);
+    }
+
+    async sendText(text: string, channel: Channel): Promise<UserMessage[]> {
+        this.Internal.say(channel.Name, text);
+
+        return [ new IRCMessage(this.ClientUser, channel, text) ];
+    }
+
+}
+
+export class IRCClientUser extends ClientUser {
+
+    constructor(client: IRCClient, id: string) {
+        super(client, id);
+    }
+
+    get Client() {
+        return super.Client as IRCClient;
+    }
+
+    get Name() {
+        return this.Client.UserName;
+    }
+
+    get Connected() {
+        return this.Client.Connected;
+    }
+
+}
+
+export class IRCClientHandler extends ClientHandler<IRCClient> {
+
+}
