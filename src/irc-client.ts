@@ -24,7 +24,7 @@ export class IRCClient extends BaseClient {
     private channelMap: Map<string, IRCChannel>;
     private userMap: Map<string, IRCUser>;
 
-    constructor(url: string, { channelList = new Array<string>(), channelPrefix = '&#', username = '', port = 6667, secured = false, password = '' }) {
+    constructor(url: string, { channelList = new Array<string>(), channelPrefix = '&#', username = '', realName = <string> username, port = 6667, secured = false, password = '' }) {
         super();
 
         this.channelMap = new Map();
@@ -38,6 +38,7 @@ export class IRCClient extends BaseClient {
             autoConnect: false,
             channels: channelList,
             channelPrefixes: this.channelPrefix,
+            realName: realName,
             port: port,
             secure: secured,
             password: password
@@ -92,8 +93,10 @@ export class IRCClient extends BaseClient {
 
     protected startClient(): Promise<void> {
         return new Promise<void> ((resolve, reject) => {
-            this.Internal.connect(32, (e: NodeIRC.IMessage) => {
-                resolve();
+            this.Internal.connect(0, (e: NodeIRC.IMessage) => {
+                this.Internal.once('registered', (msg: NodeIRC.IMessage) => {
+                    resolve();
+                });
             });
         });
     }
