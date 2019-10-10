@@ -3,6 +3,7 @@ import { Client as InternalClient } from "irc";
 import { IRCChannel, IRCUser, IRCMessage } from "./irc-wrapped";
 import NodeIRC = require("irc");
 import { AttachmentTemplateHandler } from "./irc-template-handler";
+import { prototype } from "events";
 
 /*
  * Created on Wed Oct 09 2019
@@ -23,13 +24,7 @@ export class IRCClient extends BaseClient {
     private channelMap: Map<string, IRCChannel>;
     private userMap: Map<string, IRCUser>;
 
-    constructor(url: string, { channelList, channelPrefix, username, secured, password } = {
-        channelList: [],
-        channelPrefix: '&#',
-        username: '',
-        secured: false,
-        password: ''
-    }) {
+    constructor(url: string, { channelList = new Array<string>(), channelPrefix = '&#', username = '', port = 6667, secured = false, password = '' }) {
         super();
 
         this.channelMap = new Map();
@@ -43,9 +38,12 @@ export class IRCClient extends BaseClient {
             autoConnect: false,
             channels: channelList,
             channelPrefixes: this.channelPrefix,
+            port: port,
             secure: secured,
             password: password
         });
+
+        this.internal.on('message', this.listenMessage.bind(this));
 
         this.connected = false;
 
@@ -77,7 +75,7 @@ export class IRCClient extends BaseClient {
     }
 
     get ChannelList(): Channel[] {
-        throw new Error("Method not implemented.");
+        throw Array.from(this.channelMap.values());
     }
 
     nameToID(name: string) {
@@ -150,6 +148,15 @@ export class IRCClient extends BaseClient {
         this.Internal.say(channel.Name, text);
 
         return [ new IRCMessage(this.ClientUser, channel, text) ];
+    }
+
+    protected listenMessage(nick: string, to: string, text: string, rawMessage: NodeIRC.IMessage) {
+        let user = this.getWrappedUser(nick);
+        let channel = this.getWrappedChannel(to);
+
+        let message = new IRCMessage(user, channel, text, []);
+    
+        this.messageReceived(message);
     }
 
 }

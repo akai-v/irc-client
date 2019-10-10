@@ -1,5 +1,5 @@
 import { IRCClient } from "./irc-client";
-import { TemplateHandler, RichMessageTemplate, AttachmentTemplate, Channel, UserMessage } from "@akaiv/core";
+import { TemplateHandler, RichMessageTemplate, AttachmentTemplate, Channel, UserMessage, AttachmentType } from "@akaiv/core";
 import * as request from "request-promise";
 
 /*
@@ -17,6 +17,10 @@ export class AttachmentTemplateHandler extends TemplateHandler<IRCClient> {
     async send(template: AttachmentTemplate, channel: Channel): Promise<UserMessage[]> {
         let text = template.Text;
 
+        if (template.AttachmentList.length > 0) {
+            text += '\n';
+        }
+
         for (let attachment of template.AttachmentList) {
             try {
             let res = await request('https://file.io?expires=1', {
@@ -27,16 +31,17 @@ export class AttachmentTemplateHandler extends TemplateHandler<IRCClient> {
                             filename: attachment.Name
                         }
                     }
-                }
+                },
+                method: 'POST'
             });
 
             let obj = JSON.parse(res);
 
-            if (obj.success) {
+            if (!obj.success) {
                 throw new Error(`Cannot upload file. received ${res}`);
             }
 
-            text += `${attachment.Name} (${attachment.Type}): ${obj.link}\n`;
+            text += `\n${attachment.Name} (${AttachmentType[attachment.Type]}): ${obj.link}`;
 
             } catch(e) {
                 // SKIP
