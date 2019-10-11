@@ -45,6 +45,14 @@ export class IRCUser extends User {
         return true;
     }
 
+    get HasAvatar() {
+        return false;
+    }
+
+    async getAvatarURL(): Promise<string> {
+        throw new Error(`IRC User doesn't have avatar`);
+    }
+
     async getDMChannel(): Promise<Channel> {
         return this.Client.getPMChannel(this);
     }
