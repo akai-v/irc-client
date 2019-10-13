@@ -182,6 +182,14 @@ export class IRCClientUser extends ClientUser {
         return this.Client.Connected;
     }
 
+    get HasAvatar() {
+        return false;
+    }
+
+    async getAvatarURL(): Promise<string> {
+        throw new Error(`IRC User doesn't have avatar`);
+    }
+
 }
 
 export class IRCClientHandler extends ClientHandler<IRCClient> {
