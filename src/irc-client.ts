@@ -24,7 +24,16 @@ export class IRCClient extends BaseClient {
     private channelMap: Map<string, IRCChannel>;
     private userMap: Map<string, IRCUser>;
 
-    constructor(url: string, { channelList = new Array<string>(), channelPrefix = '&#', username = '', realName = <string> username, port = 6667, secured = false, password = '' }) {
+    constructor({ url, channelList = new Array<string>(), channelPrefix = '&#', username, realName = username, port = 6667, secured = false, password = '' }: {
+        url: string,
+        channelList: string[],
+        channelPrefix: string,
+        username: string,
+        realName: string,
+        port: number,
+        secured: boolean,
+        password: string
+    }) {
         super();
 
         this.channelMap = new Map();
