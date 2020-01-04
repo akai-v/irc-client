@@ -85,7 +85,7 @@ export class IRCClient extends BaseClient {
     }
 
     get ChannelList(): Channel[] {
-        throw Array.from(this.channelMap.values());
+        return Array.from(this.channelMap.values());
     }
 
     nameToID(name: string) {
