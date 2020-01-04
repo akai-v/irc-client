@@ -73,8 +73,8 @@ export class IRCMessage extends UserMessage {
         throw new Error("Editing is not allowed.");
     }
 
-    delete(): Promise<boolean> {
-        throw new Error("Deleting is not allowed.");
+    async delete(): Promise<boolean> {
+        return false;
     }
 
 
