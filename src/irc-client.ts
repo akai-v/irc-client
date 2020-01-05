@@ -104,7 +104,7 @@ export class IRCClient extends BaseClient {
         return new Promise<void> ((resolve, reject) => {
             this.Internal.connect(0, (e: NodeIRC.IMessage) => {
                 this.Internal.once('registered', (msg: NodeIRC.IMessage) => {
-                    this.Logger.info(`Client logined as ${this.ClientUser!.Name}`)
+                    this.Logger.info(`Client logined as ${this.UserName}`)
                     resolve();
                 });
             });
