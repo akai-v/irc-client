@@ -104,6 +104,7 @@ export class IRCClient extends BaseClient {
         return new Promise<void> ((resolve, reject) => {
             this.Internal.connect(0, (e: NodeIRC.IMessage) => {
                 this.Internal.once('registered', (msg: NodeIRC.IMessage) => {
+                    this.Logger.info(`Client logined as ${this.ClientUser!.Name}`)
                     resolve();
                 });
             });
@@ -159,7 +160,7 @@ export class IRCClient extends BaseClient {
     async sendText(text: string, channel: Channel): Promise<UserMessage[]> {
         this.Internal.say(channel.Name, text);
 
-        return [ new IRCMessage(this.ClientUser, channel, text) ];
+        return [ new IRCMessage(this.ClientUser!, channel, text) ];
     }
 
     protected listenMessage(nick: string, to: string, text: string, rawMessage: NodeIRC.IMessage) {
