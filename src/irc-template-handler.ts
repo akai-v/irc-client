@@ -11,7 +11,7 @@ import * as request from "request-promise";
 export class AttachmentTemplateHandler extends TemplateHandler<IRCClient> {
     
     canHandle(template: RichMessageTemplate): boolean {
-        return template && template instanceof AttachmentTemplate;
+        return template && template.TemplateName === 'attachment';
     }
     
     async send(template: AttachmentTemplate, channel: Channel): Promise<UserMessage[]> {
