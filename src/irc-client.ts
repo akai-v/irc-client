@@ -58,8 +58,6 @@ export class IRCClient extends BaseClient {
         this.connected = false;
 
         this.RichHandlerList.push(new AttachmentTemplateHandler(this));
-
-        this.internal.names
     }
 
     get ClientId(): string {
