@@ -17,8 +17,18 @@ export class IRCChannel extends Channel {
         this.name = name;
     }
 
+    get Client() {
+        return super.Client as IRCClient;
+    }
+
     get Name() {
         return this.name;
+    }
+
+    async getUserList() {
+        let nameList = await new Promise<string[]>((resolve) => this.Client.Internal.once(`names#${this.name}`, resolve));
+
+        return nameList.map((name) => this.Client.getWrappedUser(name));
     }
 
 }
