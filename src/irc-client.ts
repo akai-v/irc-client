@@ -158,7 +158,7 @@ export class IRCClient extends BaseClient {
     async sendText(text: string, channel: Channel): Promise<UserMessage[]> {
         this.Internal.say(channel.Name, text);
 
-        return [ new IRCMessage(this.ClientUser!, channel, text) ];
+        return [ new IRCMessage(this.ClientUser!, channel, text, Date.now()) ];
     }
 
     protected listenMessage(nick: string, to: string, text: string, rawMessage: NodeIRC.IMessage) {
