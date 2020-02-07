@@ -165,7 +165,7 @@ export class IRCClient extends BaseClient {
         let user = this.getWrappedUser(nick);
         let channel = this.getWrappedChannel(to);
 
-        let message = new IRCMessage(user, channel, text, []);
+        let message = new IRCMessage(user, channel, text, Date.now(), []);
     
         this.messageReceived(message);
     }
